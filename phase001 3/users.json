@@ -1,0 +1,84 @@
+[
+  {
+    "id": "202004377",
+    "username": "student1",
+    "password": "password1",
+    "type": "student",
+    "completed_courses": [
+      {
+        "course_id": 101,
+        "grade": "A"
+      },
+      {
+        "course_id": 102,
+        "grade": "B+"
+      },
+      {
+        "course_id": 104,
+        "grade": "B"
+      }
+    ],
+    "pending_courses": [
+      {
+        "course_id": 105,
+        "instructor": "instructor3",
+        "approved": true
+      }
+    ]
+  },
+  {
+    "id": "202002180",
+    "username": "student2",
+    "password": "password2",
+    "type": "student",
+    "completed_courses": [
+      {
+        "course_id": 101,
+        "grade": "B"
+      },
+      {
+        "course_id": 102,
+        "grade": "C+"
+      }
+    ],
+    "pending_courses": [
+      {
+        "course_id": 105,
+        "instructor": "instructor3",
+        "approved": true
+      }
+    ]
+  },
+  {
+    "id": "202210817",
+    "username": "student3",
+    "password": "password3",
+    "type": "student",
+    "completed_courses": [],
+    "pending_courses": []
+  },
+  {
+    "id": "4",
+    "username": "instructor1",
+    "password": "password4",
+    "type": "instructor"
+  },
+  {
+    "id": "5",
+    "username": "instructor2",
+    "password": "password5",
+    "type": "instructor"
+  },
+  {
+    "id": "6",
+    "username": "instructor3",
+    "password": "password6",
+    "type": "instructor"
+  },
+  {
+    "id": "7",
+    "username": "admin1",
+    "password": "password7",
+    "type": "admin"
+  }
+]

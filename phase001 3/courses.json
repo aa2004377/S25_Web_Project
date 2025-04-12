@@ -1,0 +1,153 @@
+[
+  {
+    "course_id": 101,
+    "course_name": "Programming Concepts",
+    "course_description": "Learn the basics of programming using Python.",
+    "category": "Programming",
+    "prerequisites": [],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor2",
+        "capacity": 2,
+        "registered_students": [],
+        "status": "validated"
+      },
+      {
+        "name": "instructor1",
+        "capacity": 6,
+        "registered_students": [
+          "202210817"
+        ],
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "course_id": 102,
+    "course_name": "Object-Oriented Programming (OOP)",
+    "course_description": "Understand the principles of OOP using Java.",
+    "category": "Programming",
+    "prerequisites": [
+      101
+    ],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor1",
+        "capacity": 3,
+        "registered_students": [],
+        "status": "validated"
+      },
+      {
+        "name": "instructor3",
+        "capacity": 2,
+        "registered_students": [],
+        "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 103,
+    "course_name": "Web Development",
+    "course_description": "Learn how to build websites using HTML, CSS, and JavaScript.",
+    "category": "Programming",
+    "prerequisites": [
+      101,
+      102,
+      104
+    ],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor1",
+        "capacity": 2,
+        "registered_students": ["202004377"],
+        "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 104,
+    "course_name": "Data Structures",
+    "course_description": "Explore various data structures and their applications.",
+    "category": "Computer Science",
+    "prerequisites": [
+      101,
+      102
+    ],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor3",
+        "capacity": 2,
+        "registered_students": [
+          "202002180"
+        ],
+        "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 105,
+    "course_name": "calculus",
+    "category": "math",
+    "course_description": "",
+    "prerequisites": [],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor3",
+        "capacity": 5,
+        "registered_students": [],
+        "status": "cancelled"
+      },
+      {
+        "name": "instructor1",
+        "capacity": 3,
+        "registered_students": [
+          "202210817"
+        ],
+        "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 106,
+    "course_name": "arabic",
+    "category": "language",
+    "course_description": "",
+    "prerequisites": [],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor1",
+        "capacity": 5,
+        "registered_students": [
+          "202002180",
+          "202004377",
+          "202210817"
+        ],
+        "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 112,
+    "course_name": "arabic2",
+    "category": "language",
+    "course_description": "advanced Arabic course",
+    "prerequisites": [
+      106
+    ],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor2",
+        "capacity": 11,
+        "registered_students": [],
+        "status": "validated"
+      }
+    ]
+  }
+]

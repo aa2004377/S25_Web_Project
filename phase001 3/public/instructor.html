@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">   
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructor Page</title>
+    <link rel="stylesheet" href="/public/styles.css">
+
+    <script>
+        window.onload = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+
+            const response = await fetch(`/instructor-courses?sessionId=${sessionId}`);
+            const courses = await response.json();
+
+            const div = document.getElementById('coursesList');
+
+            courses.forEach(course => {
+                div.innerHTML += `<h3>${course.course_name} (ID: ${course.course_id})</h3>`;
+
+                if (course.registered_students.length === 0) {
+                    div.innerHTML += `<p>No students registered.</p>`;
+                } else {
+                    course.registered_students.forEach(studentId => {
+                        div.innerHTML += `
+                            <p>Student ID: ${studentId}</p>
+                            <input id="grade-${course.course_id}-${studentId}" placeholder="Enter Grade (A, B+, B, C+, C, D+, D, F)" />
+                            <button onclick="submitGrade(${course.course_id}, '${studentId}')">Submit Grade</button>
+                        `;
+                    });
+                }
+            });
+        }
+
+        async function submitGrade(courseId, studentId) {
+            const grade = document.getElementById(`grade-${courseId}-${studentId}`).value;
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+
+            if (!grade) {
+                alert('Please enter a grade');
+                return;
+            }
+
+            const response = await fetch('/submit-grade', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    sessionId,
+                    courseId,
+                    studentId,
+                    grade
+                })
+            });
+
+            const msg = await response.text();
+            alert(msg);
+            location.reload();
+        }
+
+        async function logout() {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+            window.location.href = `/logout?sessionId=${sessionId}`;
+        }
+    </script>
+
+</head>
+
+<body>
+    <div class="main-container">
+        <h1>Your Courses & Students</h1>
+        <div id="coursesList"></div>
+        <button onclick="logout()">Logout</button>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">   
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link rel="stylesheet" href="/public/styles.css">
+
+    <script>
+        async function searchCourses(){
+            const searchInput = document.getElementById('searchInput').value;
+            const response = await fetch(`/courses?search=${searchInput}`);
+            const courses = await response.json();
+            displayCourses(courses);
+        }
+
+        function displayCourses(courses) {
+            const courseList = document.getElementById('courseList');
+            courseList.innerHTML = '';
+
+            if (courses.length === 0) {
+                courseList.innerHTML = '<p>No courses found.</p>';
+                return;
+            }
+
+            courses.forEach(course => {
+                const courseItem = document.createElement('div');
+                courseItem.className = 'course-item';
+
+                let instructorOptions = "";
+                course.instructors?.forEach(instr => {
+                    instructorOptions += `<option value="${instr.name}">${instr.name} (Capacity: ${instr.capacity - instr.registered_students.length} left)</option>`;
+                });
+
+                courseItem.innerHTML = `
+                    <h3>${course.course_name} (ID: ${course.course_id})</h3>
+                    <p>Category: ${course.category}</p>
+                    <p>${course.course_description}</p>
+                    <label for="instructor-${course.course_id}">Choose Instructor:</label>
+                    <select id="instructor-${course.course_id}">
+                        ${instructorOptions}
+                    </select>
+                    <button onclick="registerForCourse(${course.course_id})">Register</button>
+                `;
+
+                courseList.appendChild(courseItem);
+            });
+        }
+
+        async function registerForCourse(courseId) {
+            const instructorSelect = document.getElementById(`instructor-${courseId}`);
+            const instructorName = instructorSelect.value;
+
+            if (!instructorName) {
+                alert('Please select an instructor!');
+                return;
+            }
+
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+
+            const response = await fetch('/register', {
+                method: 'POST',
+                body: new URLSearchParams({
+                    sessionId: sessionId,
+                    courseId: courseId,
+                    instructorName: instructorName
+                })
+            });
+
+            const message = await response.text();
+            alert(message);
+        }
+
+        async function logout() {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+            window.location.href = `/logout?sessionId=${sessionId}`;
+        }
+
+        function displayLearningPath(completed, inProgress, pending) {
+            const learningPathDiv = document.getElementById('learningPath');
+
+            learningPathDiv.innerHTML = `
+                <h2>Completed Courses</h2>
+                ${completed.length ? completed.map(c => `<p>${c.course_name} (Grade: ${c.grade})</p>`).join('') : '<p>None</p>'}
+
+                <h2>In Progress Courses</h2>
+                ${inProgress.length ? inProgress.map(c => `<p>${c.course_name}</p>`).join('') : '<p>None</p>'}
+
+                <h2>Pending Courses (Waiting for Approval)</h2>
+                ${pending.length ? pending.map(c => `<p>${c.course_name}</p>`).join('') : '<p>None</p>'}
+            `;
+        }
+
+        window.onload = async () => {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+
+            const coursesResponse = await fetch('/courses');
+            const courses = await coursesResponse.json();
+            displayCourses(courses);
+
+            const learningPathResponse = await fetch(`/learning-path?sessionId=${sessionId}`);
+            const learningPathData = await learningPathResponse.json();
+            displayLearningPath(
+                learningPathData.completedCourses,
+                learningPathData.inProgressCourses,
+                learningPathData.pendingCourses
+            );
+        }
+    </script>
+
+</head>
+<body>
+    <div class="main-container">
+        <h1>Available Courses</h1>
+        <input type="text" id="searchInput" placeholder="Search by name or category for the courses">
+        <button onclick="searchCourses()">Search</button>
+        <div id="courseList" class="course-list"></div>
+
+        <h1>Your Learning Path</h1>
+        <div id="learningPath" class="learning-path"></div>
+
+        <div><button onclick="logout()">Logout</button></div>
+    </div>
+</body>
+</html>

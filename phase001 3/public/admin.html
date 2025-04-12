@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="/public/adminstyles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="switchTab('registrations')">Pending Registrations</div>
+            <div class="tab" onclick="switchTab('courses')">Course Management</div>
+        </div>
+        
+        <div id="registrationsContent" class="tab-content active">
+            <h2>Pending Registrations</h2>
+            <div id="pendingList" class="pending-list"></div>
+        </div>
+        
+        <div id="coursesContent" class="tab-content">
+            <h2>Course Management</h2>
+            
+            <div class="create-course">
+                <h3>Create New Course</h3>
+                <input type="text" id="courseName" placeholder="Course name">
+                <input type="text" id="courseCategory" placeholder="Category">
+                <textarea id="courseDescription" placeholder="Course description"></textarea>
+                <input type="text" id="courseInstructor" placeholder="Instructor username">
+                <input type="number" id="courseCapacity" placeholder="Capacity">
+                <div class="prerequisites-section">
+                    <h4>prerequisites (can select multiple)</h4>
+                    <select id="coursePrerequisites" multiple class="prerequisites-select">
+
+                    </select>
+                </div>
+                <button class="btn" onclick="createCourse()">Create Course</button>
+            </div>
+            
+                
+<div class="add-class-section">
+    <h3>Add Class to Existing Course</h3>
+    <select id="existingCourses"></select>
+    <input type="text" id="newClassInstructor" placeholder="Instructor username">
+    <input type="number" id="newClassCapacity" placeholder="Capacity">
+    <button class="btn" onclick="addClassToCourse()">Add Class</button>
+</div>
+
+
+              
+            <div id="coursesList"></div>
+        </div>
+        
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script>
+        let activeTab = 'registrations';
+        const sessionId = new URLSearchParams(window.location.search).get('sessionId');
+
+        function switchTab(tabName) {
+            activeTab = tabName;
+            
+            document.querySelectorAll('.tab').forEach(tab => 
+                tab.classList.toggle('active', tab.textContent.includes(tabName === 'registrations' ? 'Pending' : 'Course')));
+            
+            document.querySelectorAll('.tab-content').forEach(content => 
+                content.classList.toggle('active', content.id.includes(tabName)));
+            
+            if (tabName === 'registrations') loadPendingRegistrations();
+            else if (tabName === 'courses') loadCourses();
+        }
+
+        async function loadPendingRegistrations() {
+            try {
+                const response = await fetch('/pending-registrations');
+                if (!response.ok) throw new Error('Failed to load registrations');
+                const registrations = await response.json();
+                
+                document.getElementById('pendingList').innerHTML = registrations.length ? 
+                    registrations.map(reg => `
+                        <div class="pending-item">
+                            <p><strong>Student ID:</strong> ${reg.studentId}</p>
+                            <p><strong>Course:</strong> ${reg.courseId} (Instructor: ${reg.instructor})</p>
+                            <button class="btn approve-btn" onclick="approveRegistration('${reg.studentId}', ${reg.courseId})">
+                            Approve Registration
+                            </button>
+                        </div>`).join('') : '<p>No pending registrations.</p>';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load pending registrations');
+            }
+        }
+
+        async function loadCourses() {
+             try {
+
+                await loadAvailableCoursesForPrerequisites();
+                await loadExistingCourses();
+
+                const response = await fetch('/admin-courses');
+                if (!response.ok) throw new Error('Failed to load courses');
+                const courses = await response.json();
+                
+            document.getElementById('coursesList').innerHTML = courses.length ? 
+                    courses.map(course => `
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h3>${course.course_name}</h3>
+                                <p>Category: ${course.category}</p>
+                            </div>
+                            ${course.classes.map(cls => `
+                                <div class="class-card ${cls.status}">
+                                <p><strong>Instructor:</strong> ${cls.instructor}</p>
+                                <p><strong>Students:</strong> ${cls.students.length}/${cls.capacity}</p>
+                                <p><strong>Status:</strong> <span class="status-badge status-${cls.status}">${cls.status}</span></p>
+                                    ${cls.status === 'pending' ? `
+                                        <div class="action-buttons">
+                                        <button class="btn validate-btn" onclick="validateClass(${course.course_id}, '${cls.instructor}', 'validate')">
+                                        Validate Class
+                                        </button>
+                                        <button class="btn cancel-btn" onclick="validateClass(${course.course_id}, '${cls.instructor}', 'cancel')">
+                                        Cancel Class
+                                        </button>
+                                        </div>` : ''}
+                                </div>`).join('')}
+                        </div>`).join('') : '<p>No courses available.</p>';
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to load courses');
+            }
+        }
+
+        async function loadAvailableCoursesForPrerequisites() {
+    try {
+        const response = await fetch('/courses');
+        if (!response.ok) throw new Error('Failed to load courses');
+        const availableCourses = await response.json();
+        
+        const selectElement = document.getElementById('coursePrerequisites');
+        selectElement.innerHTML = availableCourses.map(course => 
+            `<option value="${course.course_id}">${course.course_name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading courses for prerequisites:', error);
+    }
+}
+
+
+        async function approveRegistration(studentId, courseId) {
+            try {
+                const response = await fetch('/approve-registration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ studentId, courseId })
+                });
+                if (!response.ok) {
+                    throw new Error('Approval failed');}
+                const result = await response.json();
+                await loadPendingRegistrations();
+                alert('Registration approved successfully!');
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to approve registration');
+            }
+        }
+
+        async function validateClass(courseId, instructorName, action) {
+    try {
+        const response = await fetch('/validate-course', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionId}`
+            },
+            body: JSON.stringify({ courseId, instructorName, action })
+        });
+
+        if (!response.ok) {
+            throw new Error(await response.text());
+            alert(error);
+            return;
+        }
+        const result = await response.text();
+        loadCourses();
+        alert(result); 
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Failed to validate class');
+    }
+}
+        async function createCourse() {
+    const name = document.getElementById('courseName').value;
+    const category = document.getElementById('courseCategory').value;
+    const description = document.getElementById('courseDescription').value;
+    const instructor = document.getElementById('courseInstructor').value;
+    const capacity = document.getElementById('courseCapacity').value;
+
+    const prerequisitesSelect = document.getElementById('coursePrerequisites');
+    const prerequisites = Array.from(prerequisitesSelect.selectedOptions).map(
+        option => parseInt(option.value)
+    );
+
+    if (!name || !category || !description || !instructor || !capacity) {
+        alert('Please fill all required fields');
+        return;
+    }
+
+    try {
+        const response = await fetch('/create-course', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionId}`
+            },
+            body: JSON.stringify({ 
+                name, 
+                category, 
+                description, 
+                instructor, 
+                capacity: parseInt(capacity),
+                prerequisites
+            })
+        });
+
+        const result = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(result.error || 'Failed to create course');
+        }
+
+        document.getElementById('courseName').value = '';
+        document.getElementById('courseCategory').value = '';
+        document.getElementById('courseDescription').value = '';
+        document.getElementById('courseInstructor').value = '';
+        document.getElementById('courseCapacity').value = '';
+        prerequisitesSelect.selectedIndex = -1;
+        
+        alert('Course created successfully!');
+        loadCourses();
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Failed to create course');
+    }
+}
+
+
+async function loadExistingCourses() {
+    try {
+        const response = await fetch('/courses');
+        const courses = await response.json();
+        const select = document.getElementById('existingCourses');
+        select.innerHTML = courses.map(c => 
+            `<option value="${c.course_id}">${c.course_name}</option>`
+        ).join('');
+    } catch (error) {
+        console.error('Error loading courses:', error);
+    }
+}
+
+async function addClassToCourse() {
+    const courseId = document.getElementById('existingCourses').value;
+    const instructor = document.getElementById('newClassInstructor').value;
+    const capacity = document.getElementById('newClassCapacity').value;
+    
+    try {
+        const response = await fetch('/add-class', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionId}`
+            },
+            body: JSON.stringify({ courseId, instructor, capacity })
+        });
+        
+        if (!response.ok) throw new Error(await response.text());
+        
+        alert('Class added successfully!');
+        loadCourses();
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Failed to add class');
+    }
+}
+
+
+async function logout() {
+            const params = new URLSearchParams(window.location.search);
+            const sessionId = params.get('sessionId');
+            // Redirect directly to logout route
+            window.location.href = `/logout?sessionId=${sessionId}`;
+        }
+
+        window.onload = () => switchTab('registrations');
+    </script>
+</body>
+</html> 
