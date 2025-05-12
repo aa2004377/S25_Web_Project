@@ -62,7 +62,7 @@
       {
         "name": "instructor1",
         "capacity": 2,
-        "registered_students": ["202004377"],
+        "registered_students": [],
         "status": "validated"
       }
     ]
@@ -147,6 +147,30 @@
         "capacity": 11,
         "registered_students": [],
         "status": "validated"
+      }
+    ]
+  },
+  {
+    "course_id": 113,
+    "course_name": "Calculus 2",
+    "category": "Math",
+    "course_description": "Integration",
+    "prerequisites": [
+      105
+    ],
+    "status": "open",
+    "instructors": [
+      {
+        "name": "instructor3",
+        "capacity": 10,
+        "registered_students": [],
+        "status": "cancelled"
+      },
+      {
+        "name": "instructor1",
+        "capacity": 10,
+        "registered_students": [],
+        "status": "cancelled"
       }
     ]
   }

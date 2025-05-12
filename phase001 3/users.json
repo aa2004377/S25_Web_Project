@@ -16,6 +16,10 @@
       {
         "course_id": 104,
         "grade": "B"
+      },
+      {
+        "course_id": 103,
+        "grade": "A"
       }
     ],
     "pending_courses": [
